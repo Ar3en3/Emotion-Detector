@@ -1,0 +1,9 @@
+streamlit
+streamlit-webrtc
+onnxruntime
+opencv-python
+numpy
+pandas
+boto3
+av
+aiortc

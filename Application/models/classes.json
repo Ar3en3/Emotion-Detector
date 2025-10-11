@@ -1,0 +1,10 @@
+{
+    "classes": [
+        "suprise",
+        "sad",
+        "happy",
+        "neutral",
+        "fear",
+        "angry"
+    ]
+}
