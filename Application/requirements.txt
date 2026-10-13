@@ -1,7 +1,7 @@
 streamlit
 streamlit-webrtc
 onnxruntime
-opencv-python
+opencv-python-headless
 numpy
 pandas
 boto3
