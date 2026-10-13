@@ -8,6 +8,7 @@ import av
 import cv2
 import numpy as np
 import onnxruntime as ort
+import requests
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, WebRtcMode, VideoProcessorBase
 
@@ -452,12 +453,29 @@ class ONNXProcessor(VideoProcessorBase):
             draw_text(out, f"ERR: {e.__class__.__name__}", (20, 50))
             return av.VideoFrame.from_ndarray(out, format="bgr24")
 
+@st.cache_data(ttl=3600)
+def get_ice_servers():
+    """Cloudflare TURN credentials for Streamlit Cloud; STUN fallback locally."""
+    key_id = os.environ.get("CLOUDFLARE_TURN_KEY_ID")
+    api_token = os.environ.get("CLOUDFLARE_TURN_KEY_API_TOKEN")
+    if not key_id or not api_token:
+        return [{"urls": ["stun:stun.l.google.com:19302"]}]
+    resp = requests.post(
+        f"https://rtc.live.cloudflare.com/v1/turn/keys/{key_id}/credentials/generate-ice-servers",
+        headers={"Authorization": f"Bearer {api_token}"},
+        json={"ttl": 7200},
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return resp.json()["iceServers"]
+
 webrtc_streamer(
     key="onnx-webcam",
     mode=WebRtcMode.SENDRECV,
     video_processor_factory=ONNXProcessor,
     media_stream_constraints={"video": True, "audio": False},
     async_processing=True,
+    rtc_configuration={"iceServers": get_ice_servers()},
 )
 
 # ────────────────────────────────────────────────────────────────────────────────
